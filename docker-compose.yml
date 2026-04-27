@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  bot:
+    build: .
+    container_name: mebel_bot
+    restart: unless-stopped
+    ports:
+      - "8000:8000" # Web App uvicorn porti
+    volumes:
+      # Bazani va rasmlarni yo'qotmaslik uchun kompyuterdagi papkani konteynerga ulaymiz
+      - ./mebel.db:/app/mebel.db
+      - ./downloads:/app/downloads
+    env_file:
+      - .env

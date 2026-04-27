@@ -1,0 +1,9 @@
+venv/
+__pycache__/
+*.pyc
+.env
+.git/
+mebel.db
+downloads/
+cloudflared.exe
+cloudflared2.exe
