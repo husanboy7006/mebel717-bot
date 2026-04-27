@@ -80,10 +80,32 @@ async def handle_web_app_data(message: Message, state: FSMContext):
         await message.answer("Savat bo'sh.")
         return
         
-    total_price = sum(item['product']['price'] * item['quantity'] for item in data)
+    true_cart = []
+    total_price = 0
     
+    async with async_session() as session:
+        for item in data:
+            product_id = item['product']['id']
+            quantity = item['quantity']
+            
+            product = await session.get(Product, product_id)
+            if product and product.stock >= quantity:
+                item_price = product.price
+                total_price += item_price * quantity
+                true_cart.append({
+                    'product': {'id': product.id, 'name': product.name, 'price': item_price},
+                    'quantity': quantity
+                })
+            else:
+                await message.answer(f"⚠️ Kechirasiz, '{item['product']['name']}' mahsulotidan omborda yetarli qolmagan yoki o'chirilgan.")
+                return
+
+    if not true_cart:
+        return
+        
     # Ma'lumotni state da saqlash
-    await state.update_data(cart=data, total_price=total_price)
+    await state.update_data(cart=true_cart, total_price=total_price)
+    data = true_cart # formatlash uchun
     
     text = "🛒 **Sizning buyurtmangiz:**\n\n"
     for i, item in enumerate(data, 1):

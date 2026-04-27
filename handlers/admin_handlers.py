@@ -131,8 +131,15 @@ async def process_stock(message: Message, state: FSMContext):
 
 @router.message(F.text == "📉 Ombor", IsAdmin())
 async def show_warehouse(message: Message, state: FSMContext):
-    keyboard = await get_warehouse_keyboard()
-    await message.answer("📉 Ombor holati:\nMahsulotni tanlab uning sonini o'zgartirishingiz mumkin:", reply_markup=keyboard)
+    keyboard = await get_warehouse_keyboard(0)
+    await message.answer("📉 Ombor holati:\nMahsulotni tanlab uning sonini yoki narxini o'zgartirishingiz mumkin:", reply_markup=keyboard)
+
+@router.callback_query(F.data.startswith("whpage_"), IsAdmin())
+async def change_warehouse_page(callback: CallbackQuery):
+    page = int(callback.data.split("_")[1])
+    keyboard = await get_warehouse_keyboard(page)
+    await callback.message.edit_reply_markup(reply_markup=keyboard)
+    await callback.answer()
 
 @router.callback_query(F.data == "admin_add_product", IsAdmin())
 async def call_add_product(callback: CallbackQuery, state: FSMContext):

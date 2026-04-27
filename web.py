@@ -12,7 +12,12 @@ from database.engine import async_session
 from database.models import Category, Product
 from sqlalchemy import select
 
+web_bot = Bot(token=BOT_TOKEN)
 app = FastAPI()
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    await web_bot.session.close()
 
 app.add_middleware(
     CORSMiddleware,
@@ -45,10 +50,8 @@ async def get_image(file_id: str):
     if not os.path.exists(file_path):
         os.makedirs("downloads", exist_ok=True)
         try:
-            bot = Bot(token=BOT_TOKEN)
-            file = await bot.get_file(file_id)
-            await bot.download_file(file.file_path, file_path)
-            await bot.session.close()
+            file = await web_bot.get_file(file_id)
+            await web_bot.download_file(file.file_path, file_path)
         except Exception as e:
             return Response(status_code=404)
             

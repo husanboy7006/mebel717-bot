@@ -2,7 +2,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import InlineKeyboardButton
 from database.engine import async_session
 from database.models import Category, Product
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 async def get_categories_keyboard():
     """Kategoriyalarni inline tugma qilib chiqarish (faqat mahsuloti borlari)"""
@@ -38,18 +38,31 @@ async def get_admin_categories_keyboard():
     builder.adjust(2)
     return builder.as_markup()
 
-async def get_warehouse_keyboard():
-    """Ombor uchun mahsulotlar ro'yxatini chiqarish"""
+async def get_warehouse_keyboard(page: int = 0):
+    """Ombor uchun mahsulotlar ro'yxatini chiqarish (Varaqlash bilan)"""
     builder = InlineKeyboardBuilder()
+    limit = 10
+    offset = page * limit
     
     async with async_session() as session:
-        result = await session.execute(select(Product))
+        total_count = await session.scalar(select(func.count()).select_from(Product))
+        result = await session.execute(select(Product).limit(limit).offset(offset))
         products = result.scalars().all()
         
         for p in products:
             builder.button(text=f"{p.name} ({p.stock} ta | {p.price:,.0f} so'm)", callback_data=f"manageprod_{p.id}")
             
     builder.adjust(1) # Har bir mahsulot bitta qatorda chiqadi
+    
+    nav_buttons = []
+    if page > 0:
+        nav_buttons.append(InlineKeyboardButton(text="⬅️ Oldingi", callback_data=f"whpage_{page-1}"))
+    if (page + 1) * limit < total_count:
+        nav_buttons.append(InlineKeyboardButton(text="Keyingi ➡️", callback_data=f"whpage_{page+1}"))
+        
+    if nav_buttons:
+        builder.row(*nav_buttons)
+        
     builder.row(InlineKeyboardButton(text="➕ Yangi mahsulot qo'shish", callback_data="admin_add_product"))
     return builder.as_markup()
 
