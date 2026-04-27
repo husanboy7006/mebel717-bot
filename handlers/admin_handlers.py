@@ -9,7 +9,7 @@ from keyboards.reply import get_admin_menu_keyboard, get_main_menu_keyboard
 from keyboards.inline import get_admin_categories_keyboard, get_warehouse_keyboard, get_manage_product_keyboard
 from database.engine import async_session
 from database.models import Product, Category, Order, OrderItem, OrderStatus, User
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 router = Router()
 
@@ -258,6 +258,29 @@ async def cancel_order(call: CallbackQuery):
                 pass
                 
     await call.answer("Buyurtma bekor qilindi va mahsulotlar omborga qaytdi!", show_alert=True)
+
+# --- STATISTIKA ---
+
+@router.message(F.text == "📊 Statistika", IsAdmin())
+async def show_statistics(message: Message):
+    async with async_session() as session:
+        # Foydalanuvchilar soni
+        users_count = await session.scalar(select(func.count()).select_from(User))
+        
+        # Jami buyurtmalar soni
+        orders_count = await session.scalar(select(func.count()).select_from(Order))
+        
+        # Jami savdo summasi (Yopilgan / Yetkazib berilgan buyurtmalar asosida)
+        result = await session.execute(select(func.sum(Order.total_price)).where(Order.status == OrderStatus.DELIVERED))
+        total_revenue = result.scalar() or 0
+        
+    text = (
+        "📊 **Bot Statistikasi:**\n\n"
+        f"👥 Umumiy foydalanuvchilar: **{users_count} ta**\n"
+        f"📦 Barcha buyurtmalar: **{orders_count} ta**\n"
+        f"💰 Jami tasdiqlangan savdo: **{total_revenue:,.0f} so'm**"
+    )
+    await message.answer(text, parse_mode="Markdown")
 
 # --- OMMAVIY XABAR (REKLAMA) YUBORISH ---
 
