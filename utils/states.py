@@ -12,6 +12,10 @@ class EditStockState(StatesGroup):
     product_id = State()
     new_stock = State()
 
+class EditPriceState(StatesGroup):
+    product_id = State()
+    new_price = State()
+
 class CheckoutState(StatesGroup):
     waiting_for_phone = State()
     waiting_for_address = State()

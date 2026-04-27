@@ -4,9 +4,9 @@ from aiogram.filters import Command, Filter
 from aiogram.fsm.context import FSMContext
 
 from config.config import ADMIN_IDS
-from utils.states import AddProductState, EditStockState, AddCategoryState
+from utils.states import AddProductState, EditStockState, AddCategoryState, EditPriceState
 from keyboards.reply import get_admin_menu_keyboard, get_main_menu_keyboard
-from keyboards.inline import get_admin_categories_keyboard, get_warehouse_keyboard
+from keyboards.inline import get_admin_categories_keyboard, get_warehouse_keyboard, get_manage_product_keyboard
 from database.engine import async_session
 from database.models import Product, Category, Order, OrderItem, OrderStatus
 from sqlalchemy import select
@@ -141,10 +141,18 @@ async def call_add_product(callback: CallbackQuery, state: FSMContext):
     await state.set_state(AddProductState.category)
     await callback.answer()
 
+@router.callback_query(F.data.startswith("manageprod_"), IsAdmin())
+async def manage_product_choice(callback: CallbackQuery):
+    product_id = int(callback.data.split("_")[1])
+    keyboard = get_manage_product_keyboard(product_id)
+    await callback.message.edit_text("Ushbu mahsulotning nimasini o'zgartirmoqchisiz?", reply_markup=keyboard)
+    await callback.answer()
+
 @router.callback_query(F.data.startswith("editstock_"), IsAdmin())
 async def start_edit_stock(callback: CallbackQuery, state: FSMContext):
     product_id = int(callback.data.split("_")[1])
     await state.update_data(product_id=product_id)
+    await callback.message.delete()
     await callback.message.answer("📦 Ushbu mahsulotning yangi sonini (qoldiqni) kiriting:")
     await state.set_state(EditStockState.new_stock)
     await callback.answer()
@@ -168,6 +176,35 @@ async def process_new_stock(message: Message, state: FSMContext):
             
     await state.clear()
     await message.answer(f"✅ Mahsulot soni muvaffaqiyatli yangilandi: {new_stock} ta qoldi.", reply_markup=get_admin_menu_keyboard())
+
+@router.callback_query(F.data.startswith("editprice_"), IsAdmin())
+async def start_edit_price(callback: CallbackQuery, state: FSMContext):
+    product_id = int(callback.data.split("_")[1])
+    await state.update_data(product_id=product_id)
+    await callback.message.delete()
+    await callback.message.answer("💰 Ushbu mahsulotning yangi narxini (so'mda) kiriting:\n(Faqat raqam yozing)")
+    await state.set_state(EditPriceState.new_price)
+    await callback.answer()
+
+@router.message(EditPriceState.new_price, F.text, IsAdmin())
+async def process_new_price(message: Message, state: FSMContext):
+    if not message.text.isdigit():
+        await message.answer("Iltimos, narxni faqat raqam bilan yozing!")
+        return
+        
+    data = await state.get_data()
+    product_id = data['product_id']
+    new_price = float(message.text)
+    
+    async with async_session() as session:
+        result = await session.execute(select(Product).where(Product.id == product_id))
+        product = result.scalar_one_or_none()
+        if product:
+            product.price = new_price
+            await session.commit()
+            
+    await state.clear()
+    await message.answer(f"✅ Mahsulot narxi muvaffaqiyatli yangilandi: {new_price:,.0f} so'm bo'ldi.", reply_markup=get_admin_menu_keyboard())
 
 # --- BUYURTMALARNI BOSHQARISH (TOPSHIRILDI / BEKOR QILISH) ---
 

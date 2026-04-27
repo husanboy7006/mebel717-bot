@@ -47,11 +47,18 @@ async def get_warehouse_keyboard():
         products = result.scalars().all()
         
         for p in products:
-            builder.button(text=f"{p.name} ({p.stock} ta)", callback_data=f"editstock_{p.id}")
+            builder.button(text=f"{p.name} ({p.stock} ta | {p.price:,.0f} so'm)", callback_data=f"manageprod_{p.id}")
             
     builder.adjust(1) # Har bir mahsulot bitta qatorda chiqadi
     builder.row(InlineKeyboardButton(text="➕ Yangi mahsulot qo'shish", callback_data="admin_add_product"))
-    
+    return builder.as_markup()
+
+def get_manage_product_keyboard(product_id: int):
+    """Mahsulot soni yoki narxini o'zgartirish tugmalari"""
+    builder = InlineKeyboardBuilder()
+    builder.button(text="📦 Sonini o'zgartirish", callback_data=f"editstock_{product_id}")
+    builder.button(text="💰 Narxini o'zgartirish", callback_data=f"editprice_{product_id}")
+    builder.adjust(1)
     return builder.as_markup()
 
 def get_product_keyboard(category_id: int, current_index: int, total_count: int, product_id: int):
