@@ -4,11 +4,11 @@ from aiogram.filters import Command, Filter
 from aiogram.fsm.context import FSMContext
 
 from config.config import ADMIN_IDS
-from utils.states import AddProductState, EditStockState, AddCategoryState, EditPriceState
+from utils.states import AddProductState, EditStockState, AddCategoryState, EditPriceState, BroadcastState
 from keyboards.reply import get_admin_menu_keyboard, get_main_menu_keyboard
 from keyboards.inline import get_admin_categories_keyboard, get_warehouse_keyboard, get_manage_product_keyboard
 from database.engine import async_session
-from database.models import Product, Category, Order, OrderItem, OrderStatus
+from database.models import Product, Category, Order, OrderItem, OrderStatus, User
 from sqlalchemy import select
 
 router = Router()
@@ -258,3 +258,43 @@ async def cancel_order(call: CallbackQuery):
                 pass
                 
     await call.answer("Buyurtma bekor qilindi va mahsulotlar omborga qaytdi!", show_alert=True)
+
+# --- OMMAVIY XABAR (REKLAMA) YUBORISH ---
+
+@router.message(F.text == "📣 Reklama yuborish", IsAdmin())
+async def start_broadcast(message: Message, state: FSMContext):
+    await message.answer("Barcha bot foydalanuvchilariga yubormoqchi bo'lgan xabaringizni yuboring.\n*(Matn, rasm, video — istalgan format qabul qilinadi)*\n\nJarayonni bekor qilish uchun '⬅️ Mijoz menyusi' ni bosing.", parse_mode="Markdown")
+    await state.set_state(BroadcastState.waiting_for_message)
+
+@router.message(BroadcastState.waiting_for_message, IsAdmin())
+async def process_broadcast(message: Message, state: FSMContext):
+    if message.text == "⬅️ Mijoz menyusi":
+        await state.clear()
+        await message.answer("Reklama yuborish bekor qilindi.", reply_markup=get_main_menu_keyboard())
+        return
+
+    await state.clear()
+    msg = await message.answer("⏳ Reklama yuborish boshlandi. Iltimos kuting...")
+    
+    success = 0
+    failed = 0
+    
+    async with async_session() as session:
+        result = await session.execute(select(User))
+        users = result.scalars().all()
+        
+        for user in users:
+            try:
+                await message.send_copy(chat_id=user.id)
+                success += 1
+            except Exception:
+                failed += 1
+                
+    await msg.delete()
+    await message.answer(
+        f"✅ **Reklama yuborish yakunlandi!**\n\n"
+        f"📩 Muvaffaqiyatli yuborildi: {success} ta foydalanuvchiga\n"
+        f"🚫 Xatolik (botni bloklaganlar): {failed} ta",
+        parse_mode="Markdown",
+        reply_markup=get_admin_menu_keyboard()
+    )

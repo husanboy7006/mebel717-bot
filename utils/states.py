@@ -24,3 +24,6 @@ class CheckoutState(StatesGroup):
 
 class AddCategoryState(StatesGroup):
     name = State()
+
+class BroadcastState(StatesGroup):
+    waiting_for_message = State()

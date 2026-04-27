@@ -20,7 +20,7 @@ def get_admin_menu_keyboard() -> ReplyKeyboardMarkup:
         keyboard=[
             [KeyboardButton(text="➕ Mahsulot qo'shish"), KeyboardButton(text="📁 Kategoriya qo'shish")],
             [KeyboardButton(text="📦 Buyurtmalar"), KeyboardButton(text="📉 Ombor")],
-            [KeyboardButton(text="⬅️ Mijoz menyusi")]
+            [KeyboardButton(text="📣 Reklama yuborish"), KeyboardButton(text="⬅️ Mijoz menyusi")]
         ],
         resize_keyboard=True,
         input_field_placeholder="Admin menyusi..."
