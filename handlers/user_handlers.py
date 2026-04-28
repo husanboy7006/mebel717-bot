@@ -227,6 +227,16 @@ async def process_payment(message: Message, state: FSMContext):
                 await bot.send_message(target, admin_text, reply_markup=keyboard)
             except Exception:
                 pass
+        
+        # Agar manzil lokatsiya bo'lsa, xaritani ham yuboramiz
+        if address.startswith("📍 Lokatsiya: "):
+            try:
+                coords = address.replace("📍 Lokatsiya: ", "").split(", ")
+                lat = float(coords[0])
+                lon = float(coords[1])
+                await bot.send_location(chat_id=target, latitude=lat, longitude=lon)
+            except Exception:
+                pass
             
     # 3. Foydalanuvchiga tasdiq xabari
     if payment == "💳 Karta (Click/Payme)":
