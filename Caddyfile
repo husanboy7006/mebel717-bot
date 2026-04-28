@@ -1,0 +1,3 @@
+mebel717.uz {
+    reverse_proxy bot:8000
+}
