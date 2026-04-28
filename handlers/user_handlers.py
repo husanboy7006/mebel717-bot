@@ -18,7 +18,7 @@ router = Router()
 @router.message(Command("id"))
 async def cmd_id(message: Message):
     """Foydalanuvchi o'z Telegram ID sini bilishi uchun"""
-    await message.answer(f"Sizning Telegram ID raqamingiz:\n`{message.from_user.id}`", parse_mode="Markdown")
+    await message.answer(f"👤 Sizning ID raqamingiz: `{message.from_user.id}`\n💬 Guruh/Chat ID raqami: `{message.chat.id}`", parse_mode="Markdown")
 
 @router.message(CommandStart())
 async def cmd_start(message: Message):
