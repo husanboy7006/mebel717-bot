@@ -8,7 +8,7 @@ from aiogram.fsm.context import FSMContext
 from keyboards.reply import get_main_menu_keyboard, get_contact_keyboard, get_payment_keyboard, get_address_keyboard
 from keyboards.inline import get_order_admin_keyboard
 from utils.states import CheckoutState
-from config.config import ADMIN_IDS
+from config.config import ADMIN_IDS, GROUP_ID
 from database.engine import async_session
 from database.models import Order, OrderItem, Product, User
 from sqlalchemy import select
@@ -215,13 +215,16 @@ async def process_payment(message: Message, state: FSMContext):
     
     bot = message.bot
     keyboard = get_order_admin_keyboard(order_id)
-    for admin_id in ADMIN_IDS:
+    
+    targets = [GROUP_ID] if GROUP_ID else ADMIN_IDS
+    for target in targets:
+        if not target: continue
         try:
-            await bot.send_message(admin_id, admin_text, parse_mode="Markdown", reply_markup=keyboard)
+            await bot.send_message(target, admin_text, parse_mode="Markdown", reply_markup=keyboard)
         except Exception as e:
             try:
                 # Agar Markdown xato bersa, oddiy text sifatida jo'natadi
-                await bot.send_message(admin_id, admin_text, reply_markup=keyboard)
+                await bot.send_message(target, admin_text, reply_markup=keyboard)
             except Exception:
                 pass
             
@@ -255,12 +258,15 @@ async def process_receipt(message: Message, state: FSMContext):
     order_id = user_data.get('order_id')
     photo_id = message.photo[-1].file_id
 
-    # Adminga chekni jo'natamiz
+    # Adminga yuboramiz
     bot = message.bot
     admin_text = f"💳 **#{order_id} buyurtma uchun to'lov cheki keldi!**\n\nMijoz: {message.from_user.full_name} (@{message.from_user.username})"
-    for admin_id in ADMIN_IDS:
+    
+    targets = [GROUP_ID] if GROUP_ID else ADMIN_IDS
+    for target in targets:
+        if not target: continue
         try:
-            await bot.send_photo(admin_id, photo=photo_id, caption=admin_text, parse_mode="Markdown")
+            await bot.send_photo(target, photo=photo_id, caption=admin_text, parse_mode="Markdown")
         except Exception:
             pass
 
