@@ -1,0 +1,100 @@
+FROM products 
+WHERE products.id = ?
+2026-04-28 18:46:21,584 INFO sqlalchemy.engine.Engine [generated in 0.00025s] (1,)
+2026-04-28 18:46:21,591 INFO sqlalchemy.engine.Engine ROLLBACK
+2026-04-28 18:46:42,539 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-04-28 18:46:42,543 INFO sqlalchemy.engine.Engine INSERT INTO orders (user_id, status, total_price, phone_number, address, delivery_type, payment_type, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+2026-04-28 18:46:42,543 INFO sqlalchemy.engine.Engine [generated in 0.00071s] (6772001722, 'PENDING', 5000.0, '998949396414', "O'zim olib ketaman", 'Kuryer orqali yoki olib ketish', '💳 Karta (Click/Payme)', '2026-04-28 18:46:42.542936')
+2026-04-28 18:46:42,858 INFO sqlalchemy.engine.Engine INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)
+2026-04-28 18:46:42,858 INFO sqlalchemy.engine.Engine [generated in 0.00044s] (8, 1, 1, 5000.0)
+2026-04-28 18:46:42,861 INFO sqlalchemy.engine.Engine SELECT products.id AS products_id, products.name AS products_name, products.description AS products_description, products.price AS products_price, products.stock AS products_stock, products.image_id AS products_image_id, products.category_id AS products_category_id 
+FROM products 
+WHERE products.id = ?
+2026-04-28 18:46:42,861 INFO sqlalchemy.engine.Engine [cached since 21.28s ago] (1,)
+2026-04-28 18:46:42,868 INFO sqlalchemy.engine.Engine UPDATE products SET stock=? WHERE products.id = ?
+2026-04-28 18:46:42,868 INFO sqlalchemy.engine.Engine [generated in 0.00043s] (83, 1)
+2026-04-28 18:46:42,873 INFO sqlalchemy.engine.Engine COMMIT
+2026-04-28 18:54:25,160 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-04-28 18:54:25,161 INFO sqlalchemy.engine.Engine SELECT categories.id, categories.name 
+FROM categories
+2026-04-28 18:54:25,161 INFO sqlalchemy.engine.Engine [cached since 490.6s ago] ()
+INFO:     172.18.0.3:47948 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+2026-04-28 18:54:25,167 INFO sqlalchemy.engine.Engine SELECT products.id, products.name, products.description, products.price, products.stock, products.image_id, products.category_id 
+FROM products 
+WHERE products.stock > ?
+2026-04-28 18:54:25,167 INFO sqlalchemy.engine.Engine [cached since 490.6s ago] (0,)
+2026-04-28 18:54:25,170 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     172.18.0.3:47954 - "GET /api/data HTTP/1.1" 200 OK
+2026-04-28 18:54:34,018 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-04-28 18:54:34,019 INFO sqlalchemy.engine.Engine SELECT products.id AS products_id, products.name AS products_name, products.description AS products_description, products.price AS products_price, products.stock AS products_stock, products.image_id AS products_image_id, products.category_id AS products_category_id 
+FROM products 
+WHERE products.id = ?
+2026-04-28 18:54:34,019 INFO sqlalchemy.engine.Engine [cached since 492.4s ago] (1,)
+2026-04-28 18:54:34,021 INFO sqlalchemy.engine.Engine ROLLBACK
+2026-04-28 18:54:56,029 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-04-28 18:54:56,032 INFO sqlalchemy.engine.Engine INSERT INTO orders (user_id, status, total_price, phone_number, address, delivery_type, payment_type, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+2026-04-28 18:54:56,033 INFO sqlalchemy.engine.Engine [cached since 493.5s ago] (6772001722, 'PENDING', 10000.0, '998949396414', '📍 Lokatsiya: 41.227478, 69.177789', 'Kuryer orqali yoki olib ketish', '💳 Karta (Click/Payme)', '2026-04-28 18:54:56.032640')
+2026-04-28 18:54:56,039 INFO sqlalchemy.engine.Engine INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)
+2026-04-28 18:54:56,044 INFO sqlalchemy.engine.Engine [cached since 493.2s ago] (9, 1, 2, 5000.0)
+2026-04-28 18:54:56,047 INFO sqlalchemy.engine.Engine SELECT products.id AS products_id, products.name AS products_name, products.description AS products_description, products.price AS products_price, products.stock AS products_stock, products.image_id AS products_image_id, products.category_id AS products_category_id 
+FROM products 
+WHERE products.id = ?
+2026-04-28 18:54:56,047 INFO sqlalchemy.engine.Engine [cached since 514.5s ago] (1,)
+2026-04-28 18:54:56,052 INFO sqlalchemy.engine.Engine UPDATE products SET stock=? WHERE products.id = ?
+2026-04-28 18:54:56,052 INFO sqlalchemy.engine.Engine [cached since 493.2s ago] (81, 1)
+2026-04-28 18:54:56,053 INFO sqlalchemy.engine.Engine COMMIT
+INFO:sqlalchemy.engine.Engine:SELECT products.id AS products_id, products.name AS products_name, products.description AS products_description, products.price AS products_price, products.stock AS products_stock, products.image_id AS products_image_id, products.category_id AS products_category_id 
+FROM products 
+WHERE products.id = ?
+INFO:sqlalchemy.engine.Engine:[generated in 0.00025s] (1,)
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+INFO:aiogram.event:Update id=362587617 is handled. Duration 66 ms by bot id=8407740373
+INFO:aiogram.event:Update id=362587618 is handled. Duration 40 ms by bot id=8407740373
+INFO:aiogram.event:Update id=362587619 is handled. Duration 52 ms by bot id=8407740373
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:INSERT INTO orders (user_id, status, total_price, phone_number, address, delivery_type, payment_type, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+INFO:sqlalchemy.engine.Engine:[generated in 0.00071s] (6772001722, 'PENDING', 5000.0, '998949396414', "O'zim olib ketaman", 'Kuryer orqali yoki olib ketish', '💳 Karta (Click/Payme)', '2026-04-28 18:46:42.542936')
+INFO:sqlalchemy.engine.Engine:INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)
+INFO:sqlalchemy.engine.Engine:[generated in 0.00044s] (8, 1, 1, 5000.0)
+INFO:sqlalchemy.engine.Engine:SELECT products.id AS products_id, products.name AS products_name, products.description AS products_description, products.price AS products_price, products.stock AS products_stock, products.image_id AS products_image_id, products.category_id AS products_category_id 
+FROM products 
+WHERE products.id = ?
+INFO:sqlalchemy.engine.Engine:[cached since 21.28s ago] (1,)
+INFO:sqlalchemy.engine.Engine:UPDATE products SET stock=? WHERE products.id = ?
+INFO:sqlalchemy.engine.Engine:[generated in 0.00043s] (83, 1)
+INFO:sqlalchemy.engine.Engine:COMMIT
+INFO:aiogram.event:Update id=362587620 is handled. Duration 482 ms by bot id=8407740373
+INFO:aiogram.event:Update id=362587621 is handled. Duration 92 ms by bot id=8407740373
+INFO:aiogram.event:Update id=362587622 is not handled. Duration 5 ms by bot id=8407740373
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:SELECT categories.id, categories.name 
+FROM categories
+INFO:sqlalchemy.engine.Engine:[cached since 490.6s ago] ()
+INFO:sqlalchemy.engine.Engine:SELECT products.id, products.name, products.description, products.price, products.stock, products.image_id, products.category_id 
+FROM products 
+WHERE products.stock > ?
+INFO:sqlalchemy.engine.Engine:[cached since 490.6s ago] (0,)
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:SELECT products.id AS products_id, products.name AS products_name, products.description AS products_description, products.price AS products_price, products.stock AS products_stock, products.image_id AS products_image_id, products.category_id AS products_category_id 
+FROM products 
+WHERE products.id = ?
+INFO:sqlalchemy.engine.Engine:[cached since 492.4s ago] (1,)
+INFO:sqlalchemy.engine.Engine:ROLLBACK
+INFO:aiogram.event:Update id=362587623 is handled. Duration 67 ms by bot id=8407740373
+INFO:aiogram.event:Update id=362587624 is handled. Duration 43 ms by bot id=8407740373
+INFO:aiogram.event:Update id=362587625 is handled. Duration 42 ms by bot id=8407740373
+INFO:sqlalchemy.engine.Engine:BEGIN (implicit)
+INFO:sqlalchemy.engine.Engine:INSERT INTO orders (user_id, status, total_price, phone_number, address, delivery_type, payment_type, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+INFO:sqlalchemy.engine.Engine:[cached since 493.5s ago] (6772001722, 'PENDING', 10000.0, '998949396414', '📍 Lokatsiya: 41.227478, 69.177789', 'Kuryer orqali yoki olib ketish', '💳 Karta (Click/Payme)', '2026-04-28 18:54:56.032640')
+INFO:sqlalchemy.engine.Engine:INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)
+INFO:sqlalchemy.engine.Engine:[cached since 493.2s ago] (9, 1, 2, 5000.0)
+INFO:sqlalchemy.engine.Engine:SELECT products.id AS products_id, products.name AS products_name, products.description AS products_description, products.price AS products_price, products.stock AS products_stock, products.image_id AS products_image_id, products.category_id AS products_category_id 
+FROM products 
+WHERE products.id = ?
+INFO:sqlalchemy.engine.Engine:[cached since 514.5s ago] (1,)
+INFO:sqlalchemy.engine.Engine:UPDATE products SET stock=? WHERE products.id = ?
+INFO:sqlalchemy.engine.Engine:[cached since 493.2s ago] (81, 1)
+INFO:sqlalchemy.engine.Engine:COMMIT
+INFO:aiogram.event:Update id=362587626 is handled. Duration 220 ms by bot id=8407740373
+INFO:aiogram.event:Update id=362587627 is handled. Duration 60 ms by bot id=8407740373

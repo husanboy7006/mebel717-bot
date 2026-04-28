@@ -251,27 +251,40 @@ async def process_payment(message: Message, state: FSMContext):
             parse_mode="Markdown"
         )
 
-@router.message(CheckoutState.waiting_for_receipt, F.photo)
+@router.message(CheckoutState.waiting_for_receipt, (F.photo | F.document))
 async def process_receipt(message: Message, state: FSMContext):
     """Mijoz yuborgan chekni qabul qilib, adminga yuborish"""
     user_data = await state.get_data()
     order_id = user_data.get('order_id')
-    photo_id = message.photo[-1].file_id
 
     # Adminga yuboramiz
     bot = message.bot
     admin_text = f"💳 **#{order_id} buyurtma uchun to'lov cheki keldi!**\n\nMijoz: {message.from_user.full_name} (@{message.from_user.username})"
     
     targets = [GROUP_ID] if GROUP_ID else ADMIN_IDS
-    for target in targets:
-        if not target: continue
-        try:
-            await bot.send_photo(target, photo=photo_id, caption=admin_text, parse_mode="Markdown")
-        except Exception:
+    
+    if message.photo:
+        file_id = message.photo[-1].file_id
+        for target in targets:
+            if not target: continue
             try:
-                await bot.send_photo(target, photo=photo_id, caption=admin_text)
+                await bot.send_photo(target, photo=file_id, caption=admin_text, parse_mode="Markdown")
             except Exception:
-                pass
+                try:
+                    await bot.send_photo(target, photo=file_id, caption=admin_text)
+                except Exception:
+                    pass
+    elif message.document:
+        file_id = message.document.file_id
+        for target in targets:
+            if not target: continue
+            try:
+                await bot.send_document(target, document=file_id, caption=admin_text, parse_mode="Markdown")
+            except Exception:
+                try:
+                    await bot.send_document(target, document=file_id, caption=admin_text)
+                except Exception:
+                    pass
 
     await state.clear()
     await message.answer(
