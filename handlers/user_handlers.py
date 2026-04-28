@@ -197,9 +197,10 @@ async def process_payment(message: Message, state: FSMContext):
         order_id = new_order.id
 
     # 2. Adminga xabar yuborish
+    username_text = f"(@{message.from_user.username})" if message.from_user.username else ""
     admin_text = (
         f"🔥 **YANGI BUYURTMA #{order_id}**\n\n"
-        f"👤 Haridor: {message.from_user.full_name} (@{message.from_user.username})\n"
+        f"👤 Haridor: {message.from_user.full_name} {username_text}\n"
         f"📱 Tel: {phone}\n"
         f"📍 Manzil: {address}\n"
         f"💳 To'lov turi: {payment}\n\n"
@@ -231,9 +232,9 @@ async def process_payment(message: Message, state: FSMContext):
         # Agar manzil lokatsiya bo'lsa, xaritani ham yuboramiz
         if address.startswith("📍 Lokatsiya: "):
             try:
-                coords = address.replace("📍 Lokatsiya: ", "").split(", ")
-                lat = float(coords[0])
-                lon = float(coords[1])
+                coords = address.replace("📍 Lokatsiya: ", "").split(",")
+                lat = float(coords[0].strip())
+                lon = float(coords[1].strip())
                 await bot.send_location(chat_id=target, latitude=lat, longitude=lon)
             except Exception:
                 pass
@@ -269,7 +270,8 @@ async def process_receipt(message: Message, state: FSMContext):
 
     # Adminga yuboramiz
     bot = message.bot
-    admin_text = f"💳 **#{order_id} buyurtma uchun to'lov cheki keldi!**\n\nMijoz: {message.from_user.full_name} (@{message.from_user.username})"
+    username_text = f"(@{message.from_user.username})" if message.from_user.username else ""
+    admin_text = f"💳 **#{order_id} buyurtma uchun to'lov cheki keldi!**\n\nMijoz: {message.from_user.full_name} {username_text}"
     
     targets = [GROUP_ID] if GROUP_ID else ADMIN_IDS
     
