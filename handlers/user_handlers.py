@@ -268,7 +268,10 @@ async def process_receipt(message: Message, state: FSMContext):
         try:
             await bot.send_photo(target, photo=photo_id, caption=admin_text, parse_mode="Markdown")
         except Exception:
-            pass
+            try:
+                await bot.send_photo(target, photo=photo_id, caption=admin_text)
+            except Exception:
+                pass
 
     await state.clear()
     await message.answer(

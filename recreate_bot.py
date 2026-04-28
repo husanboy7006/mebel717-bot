@@ -9,8 +9,7 @@ client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 client.connect(host, username=user, password=password)
 
 commands = [
-    'cd ~/mebel717-bot && git pull',
-    'cd ~/mebel717-bot && docker-compose restart bot'
+    'cd ~/mebel717-bot && docker-compose up -d bot'
 ]
 
 for cmd in commands:

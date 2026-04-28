@@ -9,7 +9,7 @@ client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 client.connect(host, username=user, password=password)
 
 commands = [
-    'cd ~/mebel717-bot && git pull',
+    'sed -i "s/GROUP_ID=.*/GROUP_ID=-1003971359893/" ~/mebel717-bot/.env',
     'cd ~/mebel717-bot && docker-compose restart bot'
 ]
 
