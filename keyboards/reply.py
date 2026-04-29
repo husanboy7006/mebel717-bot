@@ -5,7 +5,7 @@ def get_main_menu_keyboard() -> ReplyKeyboardMarkup:
     """Asosiy menyu tugmalari"""
     keyboard = ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="🛍 Mahsulotlar", web_app=WebAppInfo(url="https://mebel717.uz/static/index.html?v=2.2.0"))],
+            [KeyboardButton(text="🛍 Mahsulotlar", web_app=WebAppInfo(url="https://mebel717.uz/static/index.html?v=2.2.1"))],
             [KeyboardButton(text="🛒 Savat"), KeyboardButton(text="📦 Buyurtmalarim")],
             [KeyboardButton(text="🚚 Yetkazib berish"), KeyboardButton(text="☎️ Aloqa")]
         ],
