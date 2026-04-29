@@ -9,38 +9,37 @@ let isCartView = false;
 
 // Helper function to format price
 const formatPrice = (price) => {
-    return price.toLocaleString('uz-UZ') + " so'm";
+    return Number(price).toLocaleString('uz-UZ') + " so'm";
 };
 
-// Update Telegram MainButton
-let debounceTimer;
-const updateMainButton = () => {
+// Calculate cart totals - single source of truth
+const getCartTotals = () => {
     let totalItems = 0;
     let totalPrice = 0;
-    
-    for (const item of Object.values(cart)) {
-        totalItems += Number(item.quantity);
-        totalPrice += Number(item.product.price) * Number(item.quantity);
+    const keys = Object.keys(cart);
+    for (let i = 0; i < keys.length; i++) {
+        const item = cart[keys[i]];
+        const q = Number(item.quantity);
+        const p = Number(item.product.price);
+        totalItems += q;
+        totalPrice += p * q;
     }
+    return { totalItems, totalPrice };
+};
+
+// Update Telegram MainButton - SYNCHRONOUS, no debounce
+const updateMainButton = () => {
+    const { totalItems, totalPrice } = getCartTotals();
     
     if (totalItems > 0) {
-        const text = isCartView ? 
-            `✅ Buyurtma berish (${formatPrice(totalPrice)})` : 
-            `🛒 Savat (${formatPrice(totalPrice)})`;
-            
-        tg.MainButton.setParams({
-            text: text,
-            is_visible: true
-        });
+        const text = isCartView
+            ? '✅ Buyurtma berish (' + formatPrice(totalPrice) + ')'
+            : '🛒 Savat (' + formatPrice(totalPrice) + ')';
+        tg.MainButton.setParams({ text: text, is_visible: true });
     } else {
         tg.MainButton.hide();
         if (isCartView) toggleCartView();
     }
-};
-
-const debouncedUpdateMainButton = () => {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(updateMainButton, 100);
 };
 
 // Handle MainButton click
@@ -48,7 +47,6 @@ tg.MainButton.onClick(() => {
     if (!isCartView) {
         toggleCartView();
     } else {
-        // Send data back to the bot
         const data = JSON.stringify(Object.values(cart));
         tg.sendData(data);
     }
@@ -80,7 +78,7 @@ const toggleCartView = () => {
         tg.BackButton.hide();
         renderProducts();
     }
-    debouncedUpdateMainButton();
+    updateMainButton();
 };
 
 // Render Categories
@@ -100,7 +98,7 @@ const renderCategories = () => {
     
     availableCategories.forEach(cat => {
         const li = document.createElement('li');
-        li.className = `tab ${cat.id === activeCategoryId ? 'active' : ''}`;
+        li.className = 'tab ' + (cat.id === activeCategoryId ? 'active' : '');
         li.textContent = cat.name;
         li.onclick = () => {
             activeCategoryId = cat.id;
@@ -115,32 +113,26 @@ const createProductCard = (product, qty) => {
     const card = document.createElement('div');
     card.className = 'product-card';
     
-    const imgUrl = product.image_id ? `/api/image/${product.image_id}` : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
+    const imgUrl = product.image_id ? '/api/image/' + product.image_id : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
     
     let actionHtml = '';
     if (qty === 0) {
-        actionHtml = `<button class="add-btn" onclick="addToCart(${product.id})">Qo'shish</button>`;
+        actionHtml = '<button class="add-btn" onclick="addToCart(' + product.id + ')">Qo\'shish</button>';
     } else {
-        actionHtml = `
-            <div class="qty-controls">
-                <button class="qty-btn" onclick="updateQty(${product.id}, -1)">-</button>
-                <span class="qty-val">${qty}</span>
-                <button class="qty-btn" onclick="updateQty(${product.id}, 1)">+</button>
-            </div>
-        `;
+        actionHtml = '<div class="qty-controls">' +
+            '<button class="qty-btn" onclick="updateQty(' + product.id + ', -1)">-</button>' +
+            '<span class="qty-val">' + qty + '</span>' +
+            '<button class="qty-btn" onclick="updateQty(' + product.id + ', 1)">+</button>' +
+            '</div>';
     }
     
-    card.innerHTML = `
-        <img src="${imgUrl}" class="product-img" alt="${product.name}" loading="lazy">
-        <div class="product-info">
-            <div class="product-name">${product.name}</div>
-            <div class="product-desc">${product.description || ''}</div>
-            <div class="product-price">${formatPrice(product.price)}</div>
-            <div id="action-${product.id}">
-                ${actionHtml}
-            </div>
-        </div>
-    `;
+    card.innerHTML = '<img src="' + imgUrl + '" class="product-img" alt="' + product.name + '" loading="lazy">' +
+        '<div class="product-info">' +
+            '<div class="product-name">' + product.name + '</div>' +
+            '<div class="product-desc">' + (product.description || '') + '</div>' +
+            '<div class="product-price">' + formatPrice(product.price) + '</div>' +
+            '<div id="action-' + product.id + '">' + actionHtml + '</div>' +
+        '</div>';
     return card;
 };
 
@@ -180,27 +172,27 @@ const renderCart = () => {
     });
 };
 
-// Cart logic
+// Cart logic - update qty FIRST, then render, then update button SYNCHRONOUSLY
 window.addToCart = (productId) => {
     const product = allProducts.find(p => p.id === productId);
     if (!product) return;
     
-    cart[productId] = { product, quantity: 1 };
+    cart[productId] = { product: product, quantity: 1 };
     renderProducts();
-    debouncedUpdateMainButton();
+    updateMainButton();
     tg.HapticFeedback.impactOccurred('light');
 };
 
 window.updateQty = (productId, delta) => {
-    const product = allProducts.find(p => p.id === productId);
-    if (!product || !cart[productId]) return;
+    if (!cart[productId]) return;
+    const product = cart[productId].product;
     
     const newQty = cart[productId].quantity + delta;
     
     if (newQty <= 0) {
         delete cart[productId];
     } else if (newQty > product.stock) {
-        tg.showAlert(`Kechirasiz, omborda faqat ${product.stock} ta bor.`);
+        tg.showAlert('Kechirasiz, omborda faqat ' + product.stock + ' ta bor.');
         return;
     } else {
         cart[productId].quantity = newQty;
@@ -211,18 +203,16 @@ window.updateQty = (productId, delta) => {
     } else {
         renderProducts();
     }
-    debouncedUpdateMainButton();
+    updateMainButton();
     tg.HapticFeedback.impactOccurred('light');
 };
 
 window.clearCart = () => {
-    if (confirm("Savatchani butunlay bo'shatmoqchimisiz?")) {
-        cart = {};
-        if (isCartView) toggleCartView();
-        renderProducts();
-        debouncedUpdateMainButton();
-        tg.HapticFeedback.notificationOccurred('warning');
-    }
+    cart = {};
+    if (isCartView) toggleCartView();
+    renderProducts();
+    updateMainButton();
+    tg.HapticFeedback.notificationOccurred('warning');
 };
 
 // Fetch data
