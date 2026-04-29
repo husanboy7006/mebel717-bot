@@ -178,8 +178,8 @@ window.addToCart = (productId) => {
     if (!product) return;
     
     cart[productId] = { product: product, quantity: 1 };
-    renderProducts();
     updateMainButton();
+    renderProducts();
     tg.HapticFeedback.impactOccurred('light');
 };
 
@@ -191,19 +191,27 @@ window.updateQty = (productId, delta) => {
     
     if (newQty <= 0) {
         delete cart[productId];
-    } else if (newQty > product.stock) {
-        tg.showAlert('Kechirasiz, omborda faqat ' + product.stock + ' ta bor.');
+        updateMainButton();
+        if (isCartView) { renderCart(); } else { renderProducts(); }
+        tg.HapticFeedback.impactOccurred('light');
         return;
-    } else {
-        cart[productId].quantity = newQty;
     }
     
-    if (isCartView) {
-        renderCart();
-    } else {
-        renderProducts();
+    if (newQty > product.stock) {
+        tg.showAlert('Kechirasiz, omborda faqat ' + product.stock + ' ta bor.');
+        return;
     }
+    
+    cart[productId].quantity = newQty;
     updateMainButton();
+    
+    // Faqat qty raqamini yangilash, butun DOM'ni qayta qurmang
+    var qtyEl = document.querySelector('#action-' + productId + ' .qty-val');
+    if (qtyEl) {
+        qtyEl.textContent = newQty;
+    } else {
+        if (isCartView) { renderCart(); } else { renderProducts(); }
+    }
     tg.HapticFeedback.impactOccurred('light');
 };
 
