@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mebel Furnitura</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="/static/css/style.css?v=1.0.2">
+    <link rel="stylesheet" href="/static/css/style.css?v=1.0.3">
 </head>
 <body>
     <div id="app">
@@ -23,11 +23,14 @@
         
         <!-- Cart View (Hidden by default) -->
         <div id="cartView" style="display: none;">
-            <div class="cart-header" style="padding: 15px; font-weight: bold; font-size: 18px; text-align: center; border-bottom: 1px solid rgba(0,0,0,0.1);">Sizning savatchangiz</div>
+            <div class="cart-header" style="padding: 15px; font-weight: bold; font-size: 18px; text-align: center; border-bottom: 1px solid rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center;">
+                <span>Sizning savatchangiz</span>
+                <button onclick="clearCart()" style="background: #ff4d4d; color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 12px; cursor: pointer;">Tozalash</button>
+            </div>
             <div class="products-grid" id="cartGrid"></div>
         </div>
     </div>
 
-    <script src="/static/js/app.js?v=1.0.2"></script>
+    <script src="/static/js/app.js?v=1.0.3"></script>
 </body>
 </html>

@@ -212,6 +212,16 @@ window.updateQty = (productId, delta) => {
     tg.HapticFeedback.impactOccurred('light');
 };
 
+window.clearCart = () => {
+    if (confirm("Savatchani butunlay bo'shatmoqchimisiz?")) {
+        cart = {};
+        if (isCartView) toggleCartView();
+        renderProducts();
+        updateMainButton();
+        tg.HapticFeedback.notificationOccurred('warning');
+    }
+};
+
 // Fetch data
 const initApp = async () => {
     try {
