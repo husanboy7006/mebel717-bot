@@ -13,6 +13,7 @@ const formatPrice = (price) => {
 };
 
 // Update Telegram MainButton
+let debounceTimer;
 const updateMainButton = () => {
     let totalItems = 0;
     let totalPrice = 0;
@@ -23,21 +24,23 @@ const updateMainButton = () => {
     }
     
     if (totalItems > 0) {
-        if (isCartView) {
-            tg.MainButton.setParams({
-                text: `✅ Buyurtma berish (${formatPrice(totalPrice)})`,
-                is_visible: true
-            });
-        } else {
-            tg.MainButton.setParams({
-                text: `🛒 Savat (${formatPrice(totalPrice)})`,
-                is_visible: true
-            });
-        }
+        const text = isCartView ? 
+            `✅ Buyurtma berish (${formatPrice(totalPrice)})` : 
+            `🛒 Savat (${formatPrice(totalPrice)})`;
+            
+        tg.MainButton.setParams({
+            text: text,
+            is_visible: true
+        });
     } else {
         tg.MainButton.hide();
         if (isCartView) toggleCartView();
     }
+};
+
+const debouncedUpdateMainButton = () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(updateMainButton, 100);
 };
 
 // Handle MainButton click
@@ -77,7 +80,7 @@ const toggleCartView = () => {
         tg.BackButton.hide();
         renderProducts();
     }
-    updateMainButton();
+    debouncedUpdateMainButton();
 };
 
 // Render Categories
@@ -184,7 +187,7 @@ window.addToCart = (productId) => {
     
     cart[productId] = { product, quantity: 1 };
     renderProducts();
-    updateMainButton();
+    debouncedUpdateMainButton();
     tg.HapticFeedback.impactOccurred('light');
 };
 
@@ -208,7 +211,7 @@ window.updateQty = (productId, delta) => {
     } else {
         renderProducts();
     }
-    updateMainButton();
+    debouncedUpdateMainButton();
     tg.HapticFeedback.impactOccurred('light');
 };
 
@@ -217,7 +220,7 @@ window.clearCart = () => {
         cart = {};
         if (isCartView) toggleCartView();
         renderProducts();
-        updateMainButton();
+        debouncedUpdateMainButton();
         tg.HapticFeedback.notificationOccurred('warning');
     }
 };
