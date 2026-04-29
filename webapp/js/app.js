@@ -14,18 +14,23 @@ const formatPrice = (price) => {
 
 // Update Telegram MainButton
 const updateMainButton = () => {
-    const totalItems = Object.values(cart).reduce((sum, item) => sum + item.quantity, 0);
-    const totalPrice = Object.values(cart).reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+    let totalItems = 0;
+    let totalPrice = 0;
+    
+    for (const item of Object.values(cart)) {
+        totalItems += Number(item.quantity);
+        totalPrice += Number(item.product.price) * Number(item.quantity);
+    }
     
     if (totalItems > 0) {
         if (isCartView) {
             tg.MainButton.setParams({
-                text: `Buyurtma berish (${formatPrice(totalPrice)})`,
+                text: `✅ Buyurtma berish (${formatPrice(totalPrice)})`,
                 is_visible: true
             });
         } else {
             tg.MainButton.setParams({
-                text: `Savatchani ko'rish (${formatPrice(totalPrice)})`,
+                text: `🛒 Savat (${formatPrice(totalPrice)})`,
                 is_visible: true
             });
         }
