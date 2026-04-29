@@ -5,6 +5,7 @@ let allCategories = [];
 let allProducts = [];
 let activeCategoryId = null;
 let cart = {}; // { productId: { product, quantity } }
+let isCartView = false;
 
 // Helper function to format price
 const formatPrice = (price) => {
@@ -17,26 +18,68 @@ const updateMainButton = () => {
     const totalPrice = Object.values(cart).reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
     
     if (totalItems > 0) {
-        tg.MainButton.text = `Buyurtma berish (${formatPrice(totalPrice)})`;
-        tg.MainButton.show();
+        if (isCartView) {
+            tg.MainButton.setParams({
+                text: `Buyurtma berish (${formatPrice(totalPrice)})`,
+                is_visible: true
+            });
+        } else {
+            tg.MainButton.setParams({
+                text: `Savatchani ko'rish (${formatPrice(totalPrice)})`,
+                is_visible: true
+            });
+        }
     } else {
         tg.MainButton.hide();
+        if (isCartView) toggleCartView();
     }
 };
 
 // Handle MainButton click
 tg.MainButton.onClick(() => {
-    // Send data back to the bot
-    const data = JSON.stringify(Object.values(cart));
-    tg.sendData(data);
+    if (!isCartView) {
+        toggleCartView();
+    } else {
+        // Send data back to the bot
+        const data = JSON.stringify(Object.values(cart));
+        tg.sendData(data);
+    }
 });
+
+// Handle BackButton click
+tg.BackButton.onClick(() => {
+    if (isCartView) {
+        toggleCartView();
+    }
+});
+
+const toggleCartView = () => {
+    isCartView = !isCartView;
+    const tabs = document.getElementById('tabsContainer');
+    const products = document.getElementById('productsGrid');
+    const cartView = document.getElementById('cartView');
+    
+    if (isCartView) {
+        tabs.style.display = 'none';
+        products.style.display = 'none';
+        cartView.style.display = 'block';
+        tg.BackButton.show();
+        renderCart();
+    } else {
+        tabs.style.display = 'block';
+        products.style.display = 'grid';
+        cartView.style.display = 'none';
+        tg.BackButton.hide();
+        renderProducts();
+    }
+    updateMainButton();
+};
 
 // Render Categories
 const renderCategories = () => {
     const tabsContainer = document.getElementById('categoryTabs');
     tabsContainer.innerHTML = '';
     
-    // Only show categories that have products in stock
     const availableCategories = allCategories.filter(cat => 
         allProducts.some(p => p.category_id === cat.id && p.stock > 0)
     );
@@ -60,6 +103,39 @@ const renderCategories = () => {
     });
 };
 
+const createProductCard = (product, qty) => {
+    const card = document.createElement('div');
+    card.className = 'product-card';
+    
+    const imgUrl = product.image_id ? `/api/image/${product.image_id}` : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
+    
+    let actionHtml = '';
+    if (qty === 0) {
+        actionHtml = `<button class="add-btn" onclick="addToCart(${product.id})">Qo'shish</button>`;
+    } else {
+        actionHtml = `
+            <div class="qty-controls">
+                <button class="qty-btn" onclick="updateQty(${product.id}, -1)">-</button>
+                <span class="qty-val">${qty}</span>
+                <button class="qty-btn" onclick="updateQty(${product.id}, 1)">+</button>
+            </div>
+        `;
+    }
+    
+    card.innerHTML = `
+        <img src="${imgUrl}" class="product-img" alt="${product.name}" loading="lazy">
+        <div class="product-info">
+            <div class="product-name">${product.name}</div>
+            <div class="product-desc">${product.description || ''}</div>
+            <div class="product-price">${formatPrice(product.price)}</div>
+            <div id="action-${product.id}">
+                ${actionHtml}
+            </div>
+        </div>
+    `;
+    return card;
+};
+
 // Render Products
 const renderProducts = () => {
     const grid = document.getElementById('productsGrid');
@@ -75,37 +151,24 @@ const renderProducts = () => {
     filteredProducts.forEach(product => {
         const cartItem = cart[product.id];
         const qty = cartItem ? cartItem.quantity : 0;
-        
-        const card = document.createElement('div');
-        card.className = 'product-card';
-        
-        const imgUrl = product.image_id ? `/api/image/${product.image_id}` : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
-        
-        let actionHtml = '';
-        if (qty === 0) {
-            actionHtml = `<button class="add-btn" onclick="addToCart(${product.id})">Qo'shish</button>`;
-        } else {
-            actionHtml = `
-                <div class="qty-controls">
-                    <button class="qty-btn" onclick="updateQty(${product.id}, -1)">-</button>
-                    <span class="qty-val">${qty}</span>
-                    <button class="qty-btn" onclick="updateQty(${product.id}, 1)">+</button>
-                </div>
-            `;
-        }
-        
-        card.innerHTML = `
-            <img src="${imgUrl}" class="product-img" alt="${product.name}" loading="lazy">
-            <div class="product-info">
-                <div class="product-name">${product.name}</div>
-                <div class="product-desc">${product.description || ''}</div>
-                <div class="product-price">${formatPrice(product.price)}</div>
-                <div id="action-${product.id}">
-                    ${actionHtml}
-                </div>
-            </div>
-        `;
-        grid.appendChild(card);
+        grid.appendChild(createProductCard(product, qty));
+    });
+};
+
+// Render Cart
+const renderCart = () => {
+    const grid = document.getElementById('cartGrid');
+    grid.innerHTML = '';
+    
+    const cartItems = Object.values(cart);
+    
+    if (cartItems.length === 0) {
+        grid.innerHTML = '<div class="loading">Savatcha bo\'sh</div>';
+        return;
+    }
+    
+    cartItems.forEach(item => {
+        grid.appendChild(createProductCard(item.product, item.quantity));
     });
 };
 
@@ -135,7 +198,11 @@ window.updateQty = (productId, delta) => {
         cart[productId].quantity = newQty;
     }
     
-    renderProducts();
+    if (isCartView) {
+        renderCart();
+    } else {
+        renderProducts();
+    }
     updateMainButton();
     tg.HapticFeedback.impactOccurred('light');
 };
