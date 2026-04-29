@@ -31,8 +31,19 @@
         </div>
     </div>
 
-    <div id="total-price-display" style="text-align: center; font-weight: bold; font-size: 16px; margin-top: 10px; color: var(--tg-theme-text-color);"></div>
-    <div id="version-label" style="text-align: center; font-size: 10px; color: #999; padding: 10px; opacity: 0.5;">v3.0.0</div>
-    <script src="/static/js/app_v3_0_0.js?v=3.0.0"></script>
+    <!-- Sticky Bottom Bar -->
+    <div id="stickyBar" class="sticky-bar" onclick="onStickyBarClick()">
+        <div class="total-info">
+            <span class="total-label">Jami:</span>
+            <span id="stickyTotal" class="total-sum">0 so'm</span>
+        </div>
+        <div class="cart-btn">
+            <span id="stickyBtnText">Savatcha</span>
+            <span id="stickyCount" style="background: white; color: var(--button-color); padding: 2px 6px; border-radius: 50%; font-size: 12px; font-weight: bold;">0</span>
+        </div>
+    </div>
+
+    <div id="version-label" style="text-align: center; font-size: 10px; color: #999; padding: 40px 10px 80px 10px; opacity: 0.5;">v3.1.0</div>
+    <script src="/static/js/app_v3_1_0.js?v=3.1.0"></script>
 </body>
 </html>
