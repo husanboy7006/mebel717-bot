@@ -6,3 +6,15 @@ mebel.db
 downloads/
 cloudflared.exe
 cloudflared2.exe
+*.txt
+test_*.py
+recreate_*.py
+check_*.py
+do_*.py
+get_*.py
+update_*.py
+pull_*.py
+send_*.py
+*.db-journal
+*.db-shm
+*.db-wal
