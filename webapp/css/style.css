@@ -17,6 +17,26 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
+/* Search Bar */
+.search-container {
+    padding: 10px 15px;
+    background: var(--bg-color);
+}
+.search-container input {
+    width: 100%;
+    padding: 10px 15px;
+    border-radius: 10px;
+    border: none;
+    background: var(--secondary-bg-color);
+    color: var(--text-color);
+    font-size: 14px;
+    box-sizing: border-box;
+    outline: none;
+}
+.search-container input::placeholder {
+    color: var(--hint-color);
+}
+
 /* Tabs */
 .tabs-container {
     position: sticky;
