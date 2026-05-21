@@ -96,3 +96,10 @@ async def back_to_categories(callback: CallbackQuery):
 async def ignore_callback(callback: CallbackQuery):
     """1/5 kabi bet raqami yozilgan tugma bosilganda hech narsa qilmaslik"""
     await callback.answer()
+
+@router.callback_query(F.data.startswith("addcart_"))
+async def add_to_cart_callback(callback: CallbackQuery):
+    await callback.answer(
+        "Savatga qo'shish uchun '🛍 Mahsulotlar' tugmasidan foydalaning!",
+        show_alert=True
+    )

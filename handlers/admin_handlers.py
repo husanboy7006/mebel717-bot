@@ -266,6 +266,29 @@ async def cancel_order(call: CallbackQuery):
                 
     await call.answer("Buyurtma bekor qilindi va mahsulotlar omborga qaytdi!", show_alert=True)
 
+# --- BUYURTMALAR RO'YXATI ---
+
+@router.message(F.text == "📦 Buyurtmalar", IsAdmin())
+async def show_orders(message: Message):
+    async with async_session() as session:
+        result = await session.execute(
+            select(Order).where(Order.status == OrderStatus.PENDING).order_by(Order.created_at.desc())
+        )
+        orders = result.scalars().all()
+
+    if not orders:
+        await message.answer("📦 Hozircha kutilayotgan buyurtmalar yo'q.", reply_markup=get_admin_menu_keyboard())
+        return
+
+    text = f"📦 **Kutilayotgan buyurtmalar: {len(orders)} ta**\n\n"
+    for order in orders:
+        text += f"🔹 **#{order.id}** | {order.total_price:,.0f} so'm\n"
+        text += f"   📱 {order.phone_number}\n"
+        text += f"   💳 {order.payment_type}\n"
+        text += f"   📅 {order.created_at.strftime('%d.%m.%Y %H:%M')}\n\n"
+
+    await message.answer(text, parse_mode="Markdown", reply_markup=get_admin_menu_keyboard())
+
 # --- STATISTIKA ---
 
 @router.message(F.text == "📊 Statistika", IsAdmin())

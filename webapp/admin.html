@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Admin — Ombor</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--tg-theme-bg-color, #fff);
+            color: var(--tg-theme-text-color, #000);
+            font-size: 14px;
+            padding-bottom: 30px;
+        }
+
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--tg-theme-bg-color, #fff);
+            padding: 10px 12px 0;
+            border-bottom: 1px solid rgba(128,128,128,0.15);
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 9px 14px;
+            border: none;
+            border-radius: 10px;
+            background: var(--tg-theme-secondary-bg-color, #f1f1f1);
+            color: var(--tg-theme-text-color, #000);
+            font-size: 14px;
+            outline: none;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 8px 0 6px;
+            scrollbar-width: none;
+        }
+        .tabs::-webkit-scrollbar { display: none; }
+
+        .tab {
+            flex-shrink: 0;
+            padding: 5px 13px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            background: var(--tg-theme-secondary-bg-color, #f1f1f1);
+            color: var(--tg-theme-text-color, #000);
+            transition: background 0.15s;
+        }
+        .tab.active {
+            background: var(--tg-theme-button-color, #2481cc);
+            color: var(--tg-theme-button-text-color, #fff);
+        }
+
+        .stats-bar {
+            padding: 8px 12px;
+            font-size: 12px;
+            opacity: 0.5;
+        }
+
+        .list { padding: 0 12px; }
+
+        .product-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(128,128,128,0.12);
+        }
+
+        .product-img {
+            width: 54px;
+            height: 54px;
+            border-radius: 8px;
+            object-fit: cover;
+            flex-shrink: 0;
+            background: var(--tg-theme-secondary-bg-color, #f1f1f1);
+        }
+
+        .product-info { flex: 1; min-width: 0; }
+
+        .product-name {
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .product-cat {
+            font-size: 11px;
+            opacity: 0.45;
+            margin-top: 2px;
+        }
+
+        .product-fields {
+            display: flex;
+            gap: 6px;
+            margin-top: 7px;
+            flex-wrap: wrap;
+        }
+
+        .field-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 10px;
+            border-radius: 8px;
+            border: 1.5px solid rgba(128,128,128,0.2);
+            background: var(--tg-theme-secondary-bg-color, #f1f1f1);
+            color: var(--tg-theme-text-color, #000);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.15s;
+        }
+        .field-btn:active { opacity: 0.6; }
+        .field-btn.low { border-color: #ff4d4d; color: #ff4d4d; }
+        .field-btn.zero { border-color: #ff4d4d; background: rgba(255,77,77,0.08); color: #ff4d4d; }
+
+        .empty {
+            text-align: center;
+            padding: 50px 20px;
+            opacity: 0.4;
+            font-size: 15px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px 20px;
+            opacity: 0.5;
+        }
+
+        .error-box {
+            margin: 20px 12px;
+            padding: 14px;
+            border-radius: 10px;
+            background: rgba(255,77,77,0.1);
+            color: #ff4d4d;
+            font-size: 13px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <input class="search-box" type="text" id="searchInput"
+           placeholder="🔍 Mahsulot qidirish..." oninput="onSearch()">
+    <div class="tabs" id="tabs"></div>
+</div>
+
+<div class="stats-bar" id="statsBar"></div>
+<div class="list" id="list"><div class="loading">Yuklanmoqda...</div></div>
+
+<script>
+const tg = window.Telegram.WebApp;
+tg.expand();
+const initData = tg.initData;
+
+const state = {
+    categories: [],
+    products: [],
+    activeCatId: 'all',
+    query: ''
+};
+
+const esc = (s) => {
+    const d = document.createElement('div');
+    d.textContent = String(s);
+    return d.innerHTML;
+};
+
+const fmt = (n) => Number(n).toLocaleString('uz-UZ');
+
+const apiCall = async (path, options = {}) => {
+    const res = await fetch(path, {
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Init-Data': initData,
+            ...(options.headers || {})
+        }
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: 'Server xatosi' }));
+        throw new Error(err.detail || 'Xatolik');
+    }
+    return res.json();
+};
+
+window.onSearch = () => {
+    state.query = document.getElementById('searchInput').value.toLowerCase().trim();
+    renderList();
+};
+
+window.setTab = (id) => {
+    state.activeCatId = id;
+    renderTabs();
+    renderList();
+};
+
+window.editField = async (productId, field, currentVal) => {
+    const isStock = field === 'stock';
+    const label = isStock ? `Yangi soni (ta):\nHozir: ${currentVal} ta` : `Yangi narxi (so'm):\nHozir: ${fmt(currentVal)} so'm`;
+    const val = prompt(label, currentVal);
+    if (val === null || val.trim() === '') return;
+
+    const num = isStock ? parseInt(val) : parseFloat(val.replace(/\s/g, ''));
+    if (isNaN(num) || num < 0) {
+        alert("Noto'g'ri qiymat! Faqat musbat son kiriting.");
+        return;
+    }
+
+    try {
+        await apiCall('/api/admin/update', {
+            method: 'POST',
+            body: JSON.stringify({ product_id: productId, field, value: num })
+        });
+        const p = state.products.find(p => p.id === productId);
+        if (p) p[field] = num;
+        tg.HapticFeedback.notificationOccurred('success');
+        renderList();
+    } catch (e) {
+        alert('Xatolik: ' + e.message);
+        tg.HapticFeedback.notificationOccurred('error');
+    }
+};
+
+const renderTabs = () => {
+    const tabs = document.getElementById('tabs');
+    const all = [{ id: 'all', name: 'Barchasi' }, ...state.categories];
+    tabs.innerHTML = all.map(c =>
+        `<button class="tab ${c.id == state.activeCatId ? 'active' : ''}" onclick="setTab('${c.id}')">${esc(c.name)}</button>`
+    ).join('');
+};
+
+const renderList = () => {
+    const el = document.getElementById('list');
+    const statsEl = document.getElementById('statsBar');
+    let products = [...state.products];
+
+    if (state.query) {
+        products = products.filter(p =>
+            p.name.toLowerCase().includes(state.query) ||
+            (p.description && p.description.toLowerCase().includes(state.query))
+        );
+    } else if (state.activeCatId !== 'all') {
+        products = products.filter(p => String(p.category_id) === String(state.activeCatId));
+    }
+
+    const total = products.length;
+    const outOfStock = products.filter(p => p.stock === 0).length;
+    const lowStock = products.filter(p => p.stock > 0 && p.stock <= 5).length;
+
+    let statsText = `Jami: ${total} ta mahsulot`;
+    if (outOfStock) statsText += ` · ❌ ${outOfStock} ta tugagan`;
+    if (lowStock) statsText += ` · ⚠️ ${lowStock} ta kam`;
+    statsEl.textContent = statsText;
+
+    if (!products.length) {
+        el.innerHTML = '<div class="empty">Hech narsa topilmadi</div>';
+        return;
+    }
+
+    el.innerHTML = products.map(p => {
+        const cat = state.categories.find(c => c.id === p.category_id);
+        const imgTag = p.image_id
+            ? `<img class="product-img" src="/api/image/${esc(p.image_id)}" alt="" onerror="this.style.display='none'">`
+            : `<div class="product-img"></div>`;
+
+        const stockClass = p.stock === 0 ? 'zero' : p.stock <= 5 ? 'low' : '';
+        const stockIcon = p.stock === 0 ? '❌' : p.stock <= 5 ? '⚠️' : '📦';
+
+        return `
+        <div class="product-card">
+            ${imgTag}
+            <div class="product-info">
+                <div class="product-name">${esc(p.name)}</div>
+                <div class="product-cat">${cat ? esc(cat.name) : ''}</div>
+                <div class="product-fields">
+                    <button class="field-btn ${stockClass}" onclick="editField(${p.id},'stock',${p.stock})">
+                        ${stockIcon} ${fmt(p.stock)} ta
+                    </button>
+                    <button class="field-btn" onclick="editField(${p.id},'price',${p.price})">
+                        💰 ${fmt(p.price)} so'm
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+};
+
+const init = async () => {
+    const el = document.getElementById('list');
+    try {
+        const data = await apiCall('/api/admin/products');
+        state.categories = data.categories;
+        state.products = data.products;
+        renderTabs();
+        renderList();
+        tg.ready();
+    } catch (e) {
+        el.innerHTML = `<div class="error-box">❌ ${esc(e.message)}</div>`;
+    }
+};
+
+init();
+</script>
+</body>
+</html>

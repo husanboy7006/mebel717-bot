@@ -1,6 +1,6 @@
 import json
 from aiogram import Router, F
-from aiogram.types import Message, ReplyKeyboardRemove
+from aiogram.types import Message, ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from aiogram.filters import CommandStart, Command
 from aiogram.enums import ContentType
 from aiogram.fsm.context import FSMContext
@@ -10,7 +10,7 @@ from keyboards.inline import get_order_admin_keyboard
 from utils.states import CheckoutState
 from config.config import ADMIN_IDS, GROUP_ID
 from database.engine import async_session
-from database.models import Order, OrderItem, Product, User
+from database.models import Order, OrderItem, Product, User, OrderStatus
 from sqlalchemy import select
 
 router = Router()
@@ -53,6 +53,44 @@ async def contact_handler(message: Message):
         "📍 Manzil: Toshkent shahar, Chilonzor tumani..."
     )
     await message.answer(text)
+
+@router.message(F.text == "🛒 Savat")
+async def cart_handler(message: Message):
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[
+        InlineKeyboardButton(text="🛍 Do'konni ochish", web_app=WebAppInfo(url="https://mebel717.uz/static/index.html?v=3.2.0"))
+    ]])
+    await message.answer(
+        "🛒 Savatchangiz do'kon ichida saqlanadi.\n"
+        "Quyidagi tugmani bosib, do'konni oching:",
+        reply_markup=keyboard
+    )
+
+@router.message(F.text == "📦 Buyurtmalarim")
+async def my_orders_handler(message: Message):
+    async with async_session() as session:
+        result = await session.execute(
+            select(Order).where(Order.user_id == message.from_user.id).order_by(Order.created_at.desc()).limit(10)
+        )
+        orders = result.scalars().all()
+
+    if not orders:
+        await message.answer("📦 Sizda hali hech qanday buyurtma yo'q.")
+        return
+
+    status_icons = {
+        OrderStatus.PENDING:   "⏳ Kutilyapti",
+        OrderStatus.ACCEPTED:  "✅ Tasdiqlandi",
+        OrderStatus.REJECTED:  "❌ Rad etildi",
+        OrderStatus.DELIVERED: "🚚 Yetkazildi",
+    }
+    text = "📦 **Sizning oxirgi buyurtmalaringiz:**\n\n"
+    for order in orders:
+        status_text = status_icons.get(order.status, order.status.value)
+        text += f"🔹 **#{order.id}** — {order.total_price:,.0f} so'm\n"
+        text += f"   {status_text}\n"
+        text += f"   📅 {order.created_at.strftime('%d.%m.%Y %H:%M')}\n\n"
+
+    await message.answer(text, parse_mode="Markdown")
 
 @router.message(F.text == "🚚 Yetkazib berish")
 async def delivery_info_handler(message: Message):
@@ -162,7 +200,6 @@ async def process_payment(message: Message, state: FSMContext):
     
     # 1. Bazaga saqlash
     async with async_session() as session:
-        from database.models import OrderStatus
         new_order = Order(
             user_id=message.from_user.id,
             total_price=total_price,
