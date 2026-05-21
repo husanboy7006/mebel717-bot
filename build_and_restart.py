@@ -34,6 +34,8 @@ cmd = (
     f"docker run -d "
     f"--name {CONTAINER} "
     f"--restart unless-stopped "
+    f"--network mebel717-bot_default "
+    f"--network-alias bot "
     f"-p 8000:8000 "
     f"-v {APP_DIR}/mebel.db:/app/mebel.db "
     f"-v {APP_DIR}/downloads:/app/downloads "
