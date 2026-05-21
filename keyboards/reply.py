@@ -19,7 +19,7 @@ def get_admin_menu_keyboard() -> ReplyKeyboardMarkup:
     keyboard = ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text="➕ Mahsulot qo'shish"), KeyboardButton(text="📁 Kategoriya qo'shish")],
-            [KeyboardButton(text="📦 Buyurtmalar"), KeyboardButton(text="📉 Ombor", web_app=WebAppInfo(url="https://mebel717.uz/static/admin.html"))],
+            [KeyboardButton(text="📦 Buyurtmalar"), KeyboardButton(text="📉 Ombor")],
             [KeyboardButton(text="📣 Reklama yuborish"), KeyboardButton(text="📊 Statistika")],
             [KeyboardButton(text="⬅️ Mijoz menyusi")]
         ],

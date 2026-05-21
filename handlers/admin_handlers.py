@@ -1,5 +1,5 @@
 from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from aiogram.filters import Command, Filter
 from aiogram.fsm.context import FSMContext
 
@@ -131,8 +131,13 @@ async def process_stock(message: Message, state: FSMContext):
 
 @router.message(F.text == "📉 Ombor", IsAdmin())
 async def show_warehouse(message: Message, state: FSMContext):
-    keyboard = await get_warehouse_keyboard(0)
-    await message.answer("📉 Ombor holati:\nMahsulotni tanlab uning sonini yoki narxini o'zgartirishingiz mumkin:", reply_markup=keyboard)
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[
+        InlineKeyboardButton(
+            text="🗂 Ombor panelini ochish",
+            web_app=WebAppInfo(url="https://mebel717.uz/static/admin.html")
+        )
+    ]])
+    await message.answer("📉 Ombor panelini ochish uchun quyidagi tugmani bosing:", reply_markup=keyboard)
 
 @router.callback_query(F.data.startswith("whpage_"), IsAdmin())
 async def change_warehouse_page(callback: CallbackQuery):

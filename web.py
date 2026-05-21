@@ -7,7 +7,7 @@ import time
 from contextlib import asynccontextmanager
 from urllib.parse import parse_qsl
 
-from fastapi import FastAPI, Response, Header, HTTPException
+from fastapi import FastAPI, Response, Header, HTTPException, Query
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -116,10 +116,14 @@ async def get_image(file_id: str):
 # --- Admin API ---
 
 @app.get("/api/admin/products")
-async def get_admin_products(x_init_data: str = Header(None)):
-    if not x_init_data:
+async def get_admin_products(
+    init_data: str = Query(None),
+    x_init_data: str = Header(None)
+):
+    auth = init_data or x_init_data
+    if not auth:
         raise HTTPException(status_code=403, detail="initData kerak")
-    verify_admin(x_init_data)
+    verify_admin(auth)
 
     async with async_session() as session:
         cat_result = await session.execute(select(Category))
@@ -136,10 +140,15 @@ async def get_admin_products(x_init_data: str = Header(None)):
 
 
 @app.post("/api/admin/update")
-async def update_product(req: UpdateRequest, x_init_data: str = Header(None)):
-    if not x_init_data:
+async def update_product(
+    req: UpdateRequest,
+    init_data: str = Query(None),
+    x_init_data: str = Header(None)
+):
+    auth = init_data or x_init_data
+    if not auth:
         raise HTTPException(status_code=403, detail="initData kerak")
-    verify_admin(x_init_data)
+    verify_admin(auth)
 
     if req.field not in ("stock", "price"):
         raise HTTPException(status_code=400, detail="Noto'g'ri maydon")
