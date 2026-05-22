@@ -1,7 +1,7 @@
 import paramiko
 import time
 
-HOST = '79.143.185.232'
+HOST = '161.97.182.197'
 USER = 'root'
 PASSWORD = 'mebel717'
 APP_DIR = '/root/mebel717-bot'
